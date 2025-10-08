@@ -22,7 +22,7 @@ on:
           - dagu
           - pipa
       include_ksu:
-        description: '是否包含 KSU'
+        description: '是否包含KSU'
         required: true
         default: 'true'
         type: choice
@@ -45,14 +45,16 @@ jobs:
         sudo apt update
         sudo apt install -y build-essential git curl wget bison flex zip bc cpio libssl-dev ccache python-is-python3 unzip
 
-    # ⚡ 智能 ccache 缓存
+    # 生成短哈希（修复 substr() 报错）
+    - name: Set short commit SHA
+      id: vars
+      run: echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
+
     - name: Cache ccache
       uses: actions/cache@v4
       with:
         path: ~/.cache/ccache_mikernel
-        # 主键：基于操作系统 + KSU选项 + 设备 + 源码唯一ID（取commit哈希前8位）
-        key: ${{ runner.os }}-ccache-${{ github.event.inputs.device }}-${{ github.event.inputs.include_ksu }}-${{ github.sha.substr(0,8) }}
-        # 恢复键：支持跨commit共享缓存
+        key: ${{ runner.os }}-ccache-${{ github.event.inputs.device }}-${{ github.event.inputs.include_ksu }}-${{ env.SHORT_SHA }}
         restore-keys: |
           ${{ runner.os }}-ccache-${{ github.event.inputs.device }}-${{ github.event.inputs.include_ksu }}-
           ${{ runner.os }}-ccache-${{ github.event.inputs.device }}-
